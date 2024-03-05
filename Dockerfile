@@ -1,16 +1,23 @@
 FROM ubuntu:22.04
 
 # set the github runner version
-ARG RUNNER_VERSION="2.311.0"
+ARG RUNNER_VERSION="2.314.1"
 ARG DOCKER_GID="121"
 
 # copy over the start.sh script
 WORKDIR /home/docker/actions-runner
 
-RUN export DEBIAN_FRONTEND=noninteractive ARCH=`dpkg --print-architecture` && apt-get update -y && \
-    apt-get upgrade -y && groupadd -g ${DOCKER_GID} docker && useradd -m docker -g docker && \
+RUN export DEBIAN_FRONTEND=noninteractive && \
+    sed -i s@/archive.ubuntu.com/@/apt.ksyun.cn/@g /etc/apt/sources.list && \
+    sed -i s@/security.ubuntu.com/@/apt.ksyun.cn/@g /etc/apt/sources.list && \
+    apt-get update -y && \
+    apt-get upgrade -y
+
+RUN export DEBIAN_FRONTEND=noninteractive ARCH=`dpkg --print-architecture` && \
+    groupadd -g ${DOCKER_GID} docker && useradd -m docker -g docker && \
     apt-get install -y --no-install-recommends curl jq gnupg software-properties-common \ 
-    build-essential libssl-dev libffi-dev python3 python3-venv python3-dev python3-pip unzip && \
+    build-essential libssl-dev libffi-dev python3 python3-venv python3-dev python3-pip unzip \
+    git cmake protobuf-compiler sudo && \
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - && \
     add-apt-repository "deb [arch=${ARCH}] https://download.docker.com/linux/ubuntu jammy stable" && \
     apt install docker-ce docker-ce-cli containerd.io -y && \

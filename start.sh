@@ -1,10 +1,10 @@
 #!/bin/bash
 
-cd /home/docker/actions-runner
+cd /home/docker/actions-runner || exit 1
 
 ARCH=`dpkg --print-architecture`
 
-./config.sh --url https://github.com/$1/$2 --token $3 --name runner-${ARCH} --replace --labels linux,${ARCH} --unattended
+./config.sh --url https://github.com/$1/$2 --token $3 --name runner-${ARCH}-"$4" --replace --labels linux,${ARCH} --unattended
 
 cleanup() {
     echo "Removing runner..."
