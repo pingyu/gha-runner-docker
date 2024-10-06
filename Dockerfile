@@ -3,6 +3,7 @@ FROM ubuntu:22.04
 # set the github runner version
 ARG RUNNER_VERSION="2.319.1"
 ARG DOCKER_GID="121"
+ARG RUST_TOOLCHAIN="nightly-2023-12-10"
 
 # copy over the start.sh script
 WORKDIR /home/docker/actions-runner
@@ -41,7 +42,7 @@ registry = "sparse+https://mirrors.aliyun.com/crates.io-index/"\n\
 ' > /home/docker/.cargo/config.toml
 ENV CARGO_UNSTABLE_SPARSE_REGISTRY true
 ENV PATH /home/docker/.cargo/bin/:$PATH
-RUN rustup toolchain install nightly-2023-12-10 && \
+RUN rustup toolchain install ${RUST_TOOLCHAIN} --profile minimal --no-self-update && \
     rustup component add rustfmt clippy && \
     cargo install -q cargo-sort
 
