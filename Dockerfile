@@ -43,7 +43,7 @@ registry = "sparse+https://mirrors.aliyun.com/crates.io-index/"\n\
 ENV CARGO_UNSTABLE_SPARSE_REGISTRY true
 ENV PATH /home/docker/.cargo/bin/:$PATH
 RUN rustup toolchain install ${RUST_TOOLCHAIN} --profile minimal --no-self-update && \
-    rustup component add rustfmt clippy && \
+    rustup component add rustfmt clippy rust-src rust-analyzer && \
     cargo install -q cargo-sort
 
 # set the entrypoint to the start.sh script
