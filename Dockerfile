@@ -1,7 +1,7 @@
 FROM ubuntu:22.04
 
 # set the github runner version
-ARG RUNNER_VERSION="2.314.1"
+ARG RUNNER_VERSION="2.319.1"
 ARG DOCKER_GID="121"
 
 # copy over the start.sh script
@@ -31,6 +31,19 @@ COPY start.sh /home/docker/actions-runner/start.sh
 # since the config and run script for actions are not allowed to be run by root,
 # set the user to "docker" so all subsequent commands are run as the docker user
 USER docker
+
+RUN curl https://sh.rustup.rs -sSf | sh -s -- --no-modify-path --default-toolchain none -y
+SHELL ["/bin/bash", "-c"]
+RUN echo $'[source.crates-io]\n\
+replace-with = "aliyun"\n\
+[source.aliyun]\n\
+registry = "sparse+https://mirrors.aliyun.com/crates.io-index/"\n\
+' > /home/docker/.cargo/config.toml
+ENV CARGO_UNSTABLE_SPARSE_REGISTRY true
+ENV PATH /home/docker/.cargo/bin/:$PATH
+RUN rustup toolchain install nightly-2023-12-10 && \
+    rustup component add rustfmt clippy && \
+    cargo install -q cargo-sort
 
 # set the entrypoint to the start.sh script
 ENTRYPOINT ["./start.sh"]
