@@ -1,7 +1,7 @@
 FROM ubuntu:22.04
 
 # set the github runner version
-ARG RUNNER_VERSION="2.319.1"
+ARG RUNNER_VERSION="2.323.0"
 ARG DOCKER_GID="121"
 ARG RUST_TOOLCHAIN="nightly-2023-12-10"
 
