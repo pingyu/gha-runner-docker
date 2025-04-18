@@ -31,9 +31,7 @@ fi
 
 if [[ "${TYPE}" == "ci" || "${TYPE}" == "*" ]]; then
     ./run.sh --owner tidbcloud --repo cloud-storage-engine --token "$TOKEN" --type ci
-elif [[ "${TYPE}" == "cd" || "${TYPE}" == "*" ]]; then
+fi
+if [[ "${TYPE}" == "cd" || "${TYPE}" == "*" ]]; then
     ./run.sh --owner tidbcloud --repo cloud-storage-engine --token "$TOKEN" --type cd
-else
-    echo "Unknown type: $TYPE"
-    exit 1
 fi
