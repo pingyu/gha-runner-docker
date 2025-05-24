@@ -4,6 +4,8 @@ set -euo pipefail
 
 echo "Github Runner for $(hostname)"
 
+COUNT=1
+
 while [[ $# -gt 0 ]]; do
     case $1 in
     -o | --owner)
@@ -21,6 +23,10 @@ while [[ $# -gt 0 ]]; do
     --type)
         shift
         TYPE="$1"
+        ;;
+    -c | --count)
+        shift
+        COUNT="$1"
         ;;
     *)
         echo "Unknown option: $1"
@@ -42,6 +48,21 @@ if [[ -n "$TYPE" ]]; then
 fi
 
 docker build -t gha-runner .
-docker run -ti --name="$CONTAINER_NAME" -d --restart=always \
-    -v /var/run/docker.sock:/var/run/docker.sock gha-runner \
-    --owner "$OWNER" --repo "$REPO" --token "$TOKEN" --type "$TYPE" --hostname "$(hostname)"
+
+for ((i = 0; i < COUNT; i++)); do
+    if [[ $i -eq 0 ]]; then
+        CONTAINER_NAME_INSTANCE="$CONTAINER_NAME"
+    else
+        CONTAINER_NAME_INSTANCE="${CONTAINER_NAME}-${i}"
+    fi
+    if docker ps -a --format '{{.Names}}' | grep -q "$CONTAINER_NAME_INSTANCE"; then
+        echo "Container $CONTAINER_NAME_INSTANCE already exists, removing it."
+        docker rm -f "$CONTAINER_NAME_INSTANCE"
+    fi
+
+    docker run -ti --name="$CONTAINER_NAME_INSTANCE" -d --restart=always \
+        -v /var/run/docker.sock:/var/run/docker.sock gha-runner \
+        --owner "$OWNER" --repo "$REPO" --token "$TOKEN" \
+        --type "$TYPE" --instance-id "$i" \
+        --hostname "$(hostname)"
+done

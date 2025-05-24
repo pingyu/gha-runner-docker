@@ -4,6 +4,7 @@ cd /home/docker/actions-runner || exit 1
 
 ARCH=$(dpkg --print-architecture)
 LABELS="linux,${ARCH}"
+INSTANCE_ID=0
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -26,6 +27,10 @@ while [[ $# -gt 0 ]]; do
             LABELS="$LABELS,$TYPE"
         fi
         ;;
+    -i | --instance-id)
+        shift
+        INSTANCE_ID="$1"
+        ;;
     -h | --hostname)
         shift
         HOSTNAME="$1"
@@ -41,6 +46,9 @@ done
 RUNNER_NAME="runner-$ARCH-$HOSTNAME"
 if [[ -n "${TYPE:-}" ]]; then
     RUNNER_NAME="$RUNNER_NAME-$TYPE"
+fi
+if [[ "${INSTANCE_ID:-}" -gt 0 ]]; then
+    RUNNER_NAME="$RUNNER_NAME-$INSTANCE_ID"
 fi
 
 ./config.sh --url https://github.com/"$OWNER"/"$REPO" --token "$TOKEN" --name "$RUNNER_NAME" --replace --labels "$LABELS" --unattended
