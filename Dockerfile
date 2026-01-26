@@ -1,9 +1,9 @@
 FROM ubuntu:22.04
 
 # set the github runner version
-ARG RUNNER_VERSION="2.324.0"
+ARG RUNNER_VERSION="2.331.0"
 ARG DOCKER_GID="121"
-ARG RUST_TOOLCHAIN="nightly-2023-12-28"
+ARG RUST_TOOLCHAIN="nightly-2025-02-28"
 
 # copy over the start.sh script
 WORKDIR /home/docker/actions-runner
