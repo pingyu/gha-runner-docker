@@ -35,6 +35,9 @@ while [[ $# -gt 0 ]]; do
         shift
         HOSTNAME="$1"
         ;;
+    --coverage)
+        LABELS="$LABELS,coverage"
+        ;;
     *)
         echo "Unknown option: $1"
         exit 1

@@ -6,6 +6,7 @@ echo "Github Runner for CSE on $(hostname)"
 
 TYPE="*"
 COUNT=1
+COVERAGE=0
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -21,6 +22,9 @@ while [[ $# -gt 0 ]]; do
         shift
         COUNT="$1"
         ;;
+    --coverage)
+        COVERAGE=1
+        ;;
     *)
         echo "Unknown option: $1"
         exit 1
@@ -30,13 +34,18 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "${TOKEN:-}" ]]; then
-    echo "Usage: $0 --token <token> --type <*/ci/cd>"
+    echo "Usage: $0 --token <token> --type <*/ci/cd> [--coverage]"
     exit 1
 fi
 
+run_sh_args=()
+if [[ "$COVERAGE" -eq 1 ]]; then
+    run_sh_args+=(--coverage)
+fi
+
 if [[ "${TYPE}" == "ci" || "${TYPE}" == "*" ]]; then
-    ./run.sh --owner tidbcloud --repo cloud-storage-engine --token "$TOKEN" --type ci --count "$COUNT"
+    ./run.sh --owner tidbcloud --repo cloud-storage-engine --token "$TOKEN" --type ci --count "$COUNT" "${run_sh_args[@]}"
 fi
 if [[ "${TYPE}" == "cd" || "${TYPE}" == "*" ]]; then
-    ./run.sh --owner tidbcloud --repo cloud-storage-engine --token "$TOKEN" --type cd
+    ./run.sh --owner tidbcloud --repo cloud-storage-engine --token "$TOKEN" --type cd "${run_sh_args[@]}"
 fi
