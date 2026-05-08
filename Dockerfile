@@ -18,7 +18,7 @@ RUN export DEBIAN_FRONTEND=noninteractive ARCH=`dpkg --print-architecture` && \
     groupadd -g ${DOCKER_GID} docker && useradd -m docker -g docker && \
     apt-get install -y --no-install-recommends curl jq gnupg software-properties-common \ 
     build-essential libssl-dev libffi-dev python3 python3-venv python3-dev python3-pip unzip \
-    git cmake protobuf-compiler sudo && \
+    git cmake protobuf-compiler lld sudo && \
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - && \
     add-apt-repository "deb [arch=${ARCH}] https://download.docker.com/linux/ubuntu jammy stable" && \
     apt install docker-ce docker-ce-cli containerd.io -y && \
@@ -44,7 +44,7 @@ ENV CARGO_UNSTABLE_SPARSE_REGISTRY true
 ENV PATH /home/docker/.cargo/bin/:$PATH
 RUN rustup toolchain install ${RUST_TOOLCHAIN} --profile minimal --no-self-update && \
     rustup component add rustfmt clippy rust-src rust-analyzer
-RUN cargo install -q cargo-sort@1.0.9 cargo-nextest@0.9.85 --locked
+RUN cargo install -q cargo-sort@1.0.9 cargo-nextest@0.9.85 cargo-llvm-cov@0.6.15 --locked
 
 # set the entrypoint to the start.sh script
 ENTRYPOINT ["./start.sh"]
