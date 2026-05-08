@@ -5,6 +5,7 @@ set -euo pipefail
 echo "Github Runner for $(hostname)"
 
 COUNT=1
+COVERAGE=0
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -28,6 +29,9 @@ while [[ $# -gt 0 ]]; do
         shift
         COUNT="$1"
         ;;
+    --coverage)
+        COVERAGE=1
+        ;;
     *)
         echo "Unknown option: $1"
         exit 1
@@ -37,7 +41,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "${OWNER:-}" || -z "${REPO:-}" || -z "${TOKEN:-}" ]]; then
-    echo "Usage: $0 --owner <owner> --repo <repo> --token <token> --type <ci/cd>"
+    echo "Usage: $0 --owner <owner> --repo <repo> --token <token> --type <ci/cd> [--coverage]"
     exit 1
 fi
 
@@ -60,9 +64,32 @@ for ((i = 0; i < COUNT; i++)); do
         docker rm -f "$CONTAINER_NAME_INSTANCE"
     fi
 
-    docker run -ti --name="$CONTAINER_NAME_INSTANCE" -d --restart=always \
-        -v /var/run/docker.sock:/var/run/docker.sock gha-runner \
-        --owner "$OWNER" --repo "$REPO" --token "$TOKEN" \
-        --type "$TYPE" --instance-id "$i" \
+    docker_run_args=(
+        -ti
+        --name="$CONTAINER_NAME_INSTANCE"
+        -d
+        --restart=always
+        -v /var/run/docker.sock:/var/run/docker.sock
+    )
+
+    if [[ "$COVERAGE" -eq 1 ]]; then
+        docker_run_args+=(
+            -v /data/nvme0n1/coverage_reports:/var/www/html/reports:rw
+        )
+    fi
+
+    runner_args=(
+        --owner "$OWNER"
+        --repo "$REPO"
+        --token "$TOKEN"
+        --type "$TYPE"
+        --instance-id "$i"
         --hostname "$(hostname)"
+    )
+
+    if [[ "$COVERAGE" -eq 1 ]]; then
+        runner_args+=(--coverage)
+    fi
+
+    docker run "${docker_run_args[@]}" gha-runner "${runner_args[@]}"
 done
