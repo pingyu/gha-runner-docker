@@ -3,7 +3,9 @@ FROM ubuntu:22.04
 # set the github runner version
 ARG RUNNER_VERSION="2.331.0"
 ARG DOCKER_GID="121"
-ARG RUST_TOOLCHAIN="nightly-2025-02-28"
+ARG RUST_TOOLCHAIN="nightly-2026-01-30"
+ARG LINDERA_GIT_REV="25d36a02558ff1a523d2439345d03a28eb9beb3a"
+ENV LINDERA_CACHE=/opt/lindera-cache
 
 # copy over the start.sh script
 WORKDIR /home/docker/actions-runner
@@ -16,8 +18,8 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 
 RUN export DEBIAN_FRONTEND=noninteractive ARCH=`dpkg --print-architecture` && \
     groupadd -g ${DOCKER_GID} docker && useradd -m docker -g docker && \
-    apt-get install -y --no-install-recommends curl jq gnupg software-properties-common \ 
-    build-essential libssl-dev libffi-dev python3 python3-venv python3-dev python3-pip unzip \
+    apt-get install -y --no-install-recommends curl jq gnupg software-properties-common \
+    build-essential libssl-dev libffi-dev pkg-config python3 python3-venv python3-dev python3-pip unzip \
     git cmake protobuf-compiler lld sudo && \
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - && \
     add-apt-repository "deb [arch=${ARCH}] https://download.docker.com/linux/ubuntu jammy stable" && \
@@ -27,7 +29,11 @@ RUN export DEBIAN_FRONTEND=noninteractive ARCH=`dpkg --print-architecture` && \
     curl -O -L https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/${FILENAME} && \
     tar xzf ./$FILENAME && chown -R docker /home/docker && ./bin/installdependencies.sh
 
+RUN mkdir -p ${LINDERA_CACHE} && chown -R docker:docker ${LINDERA_CACHE}
+
 COPY start.sh /home/docker/actions-runner/start.sh
+COPY warm-lindera-cache.sh /usr/local/bin/warm-lindera-cache
+RUN chmod +x /usr/local/bin/warm-lindera-cache
 
 # since the config and run script for actions are not allowed to be run by root,
 # set the user to "docker" so all subsequent commands are run as the docker user
@@ -45,6 +51,7 @@ ENV PATH /home/docker/.cargo/bin/:$PATH
 RUN rustup toolchain install ${RUST_TOOLCHAIN} --profile minimal --no-self-update && \
     rustup component add rustfmt clippy rust-src rust-analyzer
 RUN cargo install -q cargo-sort@1.0.9 cargo-nextest@0.9.85 cargo-llvm-cov@0.6.15 --locked
+RUN LINDERA_GIT_REV=${LINDERA_GIT_REV} warm-lindera-cache
 
 # set the entrypoint to the start.sh script
 ENTRYPOINT ["./start.sh"]
