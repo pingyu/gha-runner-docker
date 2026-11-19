@@ -11,9 +11,12 @@ ENV LINDERA_CACHE=/opt/lindera-cache
 WORKDIR /home/docker/actions-runner
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
-    sed -i s@/archive.ubuntu.com/@/apt.ksyun.cn/@g /etc/apt/sources.list && \
-    sed -i s@/security.ubuntu.com/@/apt.ksyun.cn/@g /etc/apt/sources.list && \
-    apt-get update -y && \
+    sed -i \
+        -e 's@://archive\.ubuntu\.com/@://mirrors.aliyun.com/@g' \
+        -e 's@://security\.ubuntu\.com/@://mirrors.aliyun.com/@g' \
+        -e 's@://ports\.ubuntu\.com/@://mirrors.aliyun.com/@g' \
+        /etc/apt/sources.list && \
+    apt-get update --error-on=any && \
     apt-get upgrade -y
 
 RUN export DEBIAN_FRONTEND=noninteractive ARCH=`dpkg --print-architecture` && \
