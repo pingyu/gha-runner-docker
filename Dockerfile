@@ -1,7 +1,7 @@
 FROM ubuntu:22.04
 
 # set the github runner version
-ARG RUNNER_VERSION="2.331.0"
+ARG RUNNER_VERSION="2.338.2"
 ARG DOCKER_GID="121"
 ARG RUST_TOOLCHAIN="nightly-2026-01-30"
 ARG LINDERA_GIT_REV="25d36a02558ff1a523d2439345d03a28eb9beb3a"
@@ -18,12 +18,16 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 
 RUN export DEBIAN_FRONTEND=noninteractive ARCH=`dpkg --print-architecture` && \
     groupadd -g ${DOCKER_GID} docker && useradd -m docker -g docker && \
-    apt-get install -y --no-install-recommends curl jq gnupg software-properties-common \
+    apt-get install -y --no-install-recommends ca-certificates curl jq gnupg software-properties-common \
     build-essential libssl-dev libffi-dev pkg-config python3 python3-venv python3-dev python3-pip unzip \
     git cmake protobuf-compiler lld sudo && \
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - && \
-    add-apt-repository "deb [arch=${ARCH}] https://download.docker.com/linux/ubuntu jammy stable" && \
-    apt install docker-ce docker-ce-cli containerd.io -y && \
+    install -m 0755 -d /etc/apt/keyrings && \
+    curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc && \
+    chmod a+r /etc/apt/keyrings/docker.asc && \
+    echo "deb [arch=${ARCH} signed-by=/etc/apt/keyrings/docker.asc] https://mirrors.aliyun.com/docker-ce/linux/ubuntu jammy stable" \
+        > /etc/apt/sources.list.d/docker.list && \
+    apt-get update && \
+    apt-get install -y docker-ce docker-ce-cli containerd.io && \
     export ARCH=`dpkg --print-architecture | sed --expression='s/amd/x/g'` && \
     export FILENAME=actions-runner-linux-${ARCH}-${RUNNER_VERSION}.tar.gz && \
     curl -O -L https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/${FILENAME} && \
