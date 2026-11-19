@@ -39,8 +39,8 @@ RUN export DEBIAN_FRONTEND=noninteractive ARCH=`dpkg --print-architecture` && \
 RUN mkdir -p ${LINDERA_CACHE} && chown -R docker:docker ${LINDERA_CACHE}
 
 COPY start.sh /home/docker/actions-runner/start.sh
-COPY warm-lindera-cache.sh /usr/local/bin/warm-lindera-cache
-RUN chmod +x /usr/local/bin/warm-lindera-cache
+#COPY warm-lindera-cache.sh /usr/local/bin/warm-lindera-cache
+#RUN chmod +x /usr/local/bin/warm-lindera-cache
 
 # since the config and run script for actions are not allowed to be run by root,
 # set the user to "docker" so all subsequent commands are run as the docker user
@@ -58,7 +58,7 @@ ENV PATH /home/docker/.cargo/bin/:$PATH
 RUN rustup toolchain install ${RUST_TOOLCHAIN} --profile minimal --no-self-update && \
     rustup component add rustfmt clippy rust-src rust-analyzer
 RUN cargo install -q cargo-sort@1.0.9 cargo-nextest@0.9.85 cargo-llvm-cov@0.6.15 --locked
-RUN LINDERA_GIT_REV=${LINDERA_GIT_REV} warm-lindera-cache
+#RUN LINDERA_GIT_REV=${LINDERA_GIT_REV} warm-lindera-cache
 
 # set the entrypoint to the start.sh script
 ENTRYPOINT ["./start.sh"]
