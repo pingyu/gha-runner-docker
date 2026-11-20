@@ -1,9 +1,0 @@
-services:
-
-  nginx-server:
-    image: nginx:alpine
-    ports:
-      - "8080:80"
-    volumes:
-      - /data/nvme0n1/coverage_reports:/usr/share/nginx/html/reports:ro
-

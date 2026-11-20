@@ -3,7 +3,7 @@
 cd /home/docker/actions-runner || exit 1
 
 ARCH=$(dpkg --print-architecture)
-LABELS="linux,${ARCH}"
+LABELS="linux,${ARCH},cse"
 INSTANCE_ID=0
 
 while [[ $# -gt 0 ]]; do
@@ -34,9 +34,6 @@ while [[ $# -gt 0 ]]; do
     -h | --hostname)
         shift
         HOSTNAME="$1"
-        ;;
-    --coverage)
-        LABELS="$LABELS,coverage"
         ;;
     *)
         echo "Unknown option: $1"
