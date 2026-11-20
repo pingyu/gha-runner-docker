@@ -38,7 +38,6 @@ RUN export DEBIAN_FRONTEND=noninteractive ARCH=`dpkg --print-architecture` && \
 
 RUN mkdir -p ${LINDERA_CACHE} && chown -R docker:docker ${LINDERA_CACHE}
 
-COPY start.sh /home/docker/actions-runner/start.sh
 #COPY warm-lindera-cache.sh /usr/local/bin/warm-lindera-cache
 #RUN chmod +x /usr/local/bin/warm-lindera-cache
 
@@ -60,5 +59,27 @@ RUN rustup toolchain install ${RUST_TOOLCHAIN} --profile minimal --no-self-updat
 RUN cargo install -q cargo-sort@1.0.9 cargo-nextest@0.9.85 cargo-llvm-cov@0.6.15 --locked
 #RUN LINDERA_GIT_REV=${LINDERA_GIT_REV} warm-lindera-cache
 
+ARG MBX_VERSION="1.30.0"
+RUN set -euo pipefail; \
+    case "$(dpkg --print-architecture)" in \
+        amd64) arch=x86_64 ;; \
+        arm64) arch=aarch64 ;; \
+        *) echo "Unsupported mbx architecture" >&2; exit 1 ;; \
+    esac; \
+    archive="mbx-${arch}-unknown-linux-musl.tar.gz"; \
+    release="https://github.com/jdx/mr-boxington/releases/download/v${MBX_VERSION}"; \
+    tmpdir="$(mktemp -d)"; \
+    cd "$tmpdir"; \
+    curl -fsSLO "$release/$archive"; \
+    curl -fsSLO "$release/SHA256SUMS"; \
+    grep -F "  $archive" SHA256SUMS | sha256sum --check --strict -; \
+    tar -xzf "$archive"; \
+    install -m 0755 mbx "$HOME/.cargo/bin/mbx"; \
+    cd /; \
+    rm -rf "$tmpdir"; \
+    mbx setup --yes; \
+    test -x "$HOME/.local/share/mbx/bin/cargo"
+
 # set the entrypoint to the start.sh script
+COPY start.sh /home/docker/actions-runner/start.sh
 ENTRYPOINT ["./start.sh"]

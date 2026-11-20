@@ -51,6 +51,14 @@ if [[ "${INSTANCE_ID:-}" -gt 0 ]]; then
     RUNNER_NAME="$RUNNER_NAME-$INSTANCE_ID"
 fi
 
+if [[ "${TYPE:-}" == "ci" && -n "${MBX_CACHE_DIR:-}" ]]; then
+    export PATH="$HOME/.local/share/mbx/bin:$PATH"
+    export MBX_SHIMS_DIR="$HOME/.local/share/mbx/compiler-shims"
+    export MBX_TARGET_VIEWS=0
+    # Keep Docker's per-runner CPU limits instead of a shared mbx permit pool.
+    export MBX_SCHEDULER=0
+fi
+
 ./config.sh --url https://github.com/"$OWNER"/"$REPO" --token "$TOKEN" --name "$RUNNER_NAME" --replace --labels "$LABELS" --unattended
 
 cleanup() {

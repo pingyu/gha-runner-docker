@@ -44,9 +44,10 @@ if [[ -z "${TOKEN:-}" ]]; then
     exit 1
 fi
 
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 if [[ "${TYPE}" == "ci" || "${TYPE}" == "*" ]]; then
-    ./run.sh --owner tidbcloud --repo cloud-storage-engine --token "$TOKEN" --type ci --count "$COUNT" --cpus "$CPUS"
+    "$script_dir/run.sh" --owner tidbcloud --repo cloud-storage-engine --token "$TOKEN" --type ci --count "$COUNT" --cpus "$CPUS"
 fi
 if [[ "${TYPE}" == "cd" || "${TYPE}" == "*" ]]; then
-    ./run.sh --owner tidbcloud --repo cloud-storage-engine --token "$TOKEN" --type cd
+    "$script_dir/run.sh" --owner tidbcloud --repo cloud-storage-engine --token "$TOKEN" --type cd
 fi
