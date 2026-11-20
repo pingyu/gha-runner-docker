@@ -4,8 +4,9 @@ set -euo pipefail
 
 echo "Github Runner for CSE on $(hostname)"
 
-TYPE="*"
-COUNT=1
+TYPE="ci"
+COUNT=4
+CPUS=8
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -21,6 +22,14 @@ while [[ $# -gt 0 ]]; do
         shift
         COUNT="$1"
         ;;
+    --cpus)
+        if [[ $# -lt 2 || "$2" == -* ]]; then
+            echo "--cpus requires a CPU limit" >&2
+            exit 1
+        fi
+        shift
+        CPUS="$1"
+        ;;
     *)
         echo "Unknown option: $1"
         exit 1
@@ -30,12 +39,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "${TOKEN:-}" ]]; then
-    echo "Usage: $0 --token <token> --type <*/ci/cd> [--count <count>]"
+    echo "Usage: $0 --token <token> [--type <*/ci/cd>] [--count <count>] [--cpus <limit>]"
+    echo "Defaults: --type ci, --count 4, --cpus 8 (count and CPU limit apply to CI only)"
     exit 1
 fi
 
 if [[ "${TYPE}" == "ci" || "${TYPE}" == "*" ]]; then
-    ./run.sh --owner tidbcloud --repo cloud-storage-engine --token "$TOKEN" --type ci --count "$COUNT"
+    ./run.sh --owner tidbcloud --repo cloud-storage-engine --token "$TOKEN" --type ci --count "$COUNT" --cpus "$CPUS"
 fi
 if [[ "${TYPE}" == "cd" || "${TYPE}" == "*" ]]; then
     ./run.sh --owner tidbcloud --repo cloud-storage-engine --token "$TOKEN" --type cd

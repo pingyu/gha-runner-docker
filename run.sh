@@ -5,6 +5,7 @@ set -euo pipefail
 echo "Github Runner for $(hostname)"
 
 COUNT=1
+CPUS=8
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -28,6 +29,14 @@ while [[ $# -gt 0 ]]; do
         shift
         COUNT="$1"
         ;;
+    --cpus)
+        if [[ $# -lt 2 || "$2" == -* ]]; then
+            echo "--cpus requires a CPU limit" >&2
+            exit 1
+        fi
+        shift
+        CPUS="$1"
+        ;;
     *)
         echo "Unknown option: $1"
         exit 1
@@ -37,11 +46,15 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "${OWNER:-}" || -z "${REPO:-}" || -z "${TOKEN:-}" ]]; then
-    echo "Usage: $0 --owner <owner> --repo <repo> --token <token> --type <ci/cd> [--count <count>]"
+    echo "Usage: $0 --owner <owner> --repo <repo> --token <token> --type <ci/cd> [--count <count>] [--cpus <limit> (CI only, default: 8)]"
     exit 1
 fi
 
 TYPE="${TYPE:-}"
+if [[ "$TYPE" == "ci" ]] && [[ ! "$CPUS" =~ ^([0-9]+([.][0-9]+)?|[.][0-9]+)$ || ! "$CPUS" =~ [1-9] ]]; then
+    echo "--cpus must be a positive number" >&2
+    exit 1
+fi
 CONTAINER_NAME="gha-runner-$OWNER-$REPO"
 if [[ -n "$TYPE" ]]; then
     CONTAINER_NAME="$CONTAINER_NAME-$TYPE"
@@ -67,6 +80,9 @@ for ((i = 0; i < COUNT; i++)); do
         --restart=always
         -v /var/run/docker.sock:/var/run/docker.sock
     )
+    if [[ "$TYPE" == "ci" ]]; then
+        docker_run_args+=(--cpus="$CPUS")
+    fi
 
     runner_args=(
         --owner "$OWNER"
